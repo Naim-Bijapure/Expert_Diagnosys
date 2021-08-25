@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "494218129531",
+    "project_id": "n-expert-diagnosis",
+    "storage_bucket": "n-expert-diagnosis.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:494218129531:android:0c4c5d15873c485ec2b2de",
+        "android_client_info": {
+          "package_name": "com.example.expert_diagnosis"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "494218129531-n83pitosge0vnvmvase2q7rdr69detj6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBezE-HP4gDVkC_Cm9EEwUMHE77y8dByrE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "494218129531-n83pitosge0vnvmvase2q7rdr69detj6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
