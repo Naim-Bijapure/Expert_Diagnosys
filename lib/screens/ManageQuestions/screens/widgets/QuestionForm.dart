@@ -1,4 +1,4 @@
-import 'package:expert_diagnosis/Store/UserStateModel.dart';
+import 'package:expert_diagnosis/Store/AdminStateModel.dart';
 import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:provider/provider.dart';
@@ -11,28 +11,46 @@ class QeustionForm extends StatefulWidget {
 }
 
 class _QeustionFormState extends State<QeustionForm> {
-  int minAgeNumber = 20;
-  int maxAgeNumber = 20;
   final _formKey = GlobalKey<FormState>();
 
-  String selectedGender = "men";
+  int minAgeNumber = 20;
+  int maxAgeNumber = 20;
+  bool toAllAgeGroup = false;
+  TextEditingController _questionTitleController = TextEditingController();
 
-  late UserStateModel userStateModel;
+  String selectedGender = "";
+
+  late AdminStateModel adminStateModel;
+  // LIFE CYCLES
   @override
   void initState() {
     super.initState();
-    userStateModel = Provider.of<UserStateModel>(context, listen: false);
+    adminStateModel = context.read<AdminStateModel>();
+
+    // text controller listener
+    _questionTitleController.addListener(() {
+      String text = _questionTitleController.text;
+      this.onQuesitonTitle(text);
+    });
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    _questionTitleController.dispose();
+  }
+
+  // METHODS
+
   void onQuesitonTitle(value) {
-    userStateModel.onQuestionTitle(value);
+    adminStateModel.onQuestionTitle(value);
   }
 
   void onMinAge(value) {
     setState(
       () => minAgeNumber = value,
     );
-    userStateModel.updateAgeRange(value, 0);
+    adminStateModel.updateAgeRange(value, 0);
   }
 
   void onMaxAge(value) {
@@ -40,7 +58,7 @@ class _QeustionFormState extends State<QeustionForm> {
       () => maxAgeNumber = value,
     );
 
-    userStateModel.updateAgeRange(value, 1);
+    adminStateModel.updateAgeRange(value, 1);
   }
 
   void onGenderSelect(value) {
@@ -48,7 +66,17 @@ class _QeustionFormState extends State<QeustionForm> {
       () => selectedGender = value.toString(),
     );
 
-    userStateModel.onGenderSelect(value);
+    adminStateModel.onGenderSelect(value);
+  }
+
+  void _onAllAgeGroup(value) {
+    setState(() {
+      toAllAgeGroup = value!;
+      minAgeNumber = 20;
+      maxAgeNumber = 100;
+    });
+
+    adminStateModel.onAllAgeGroup(toAllAgeGroup);
   }
 
   @override
@@ -57,112 +85,137 @@ class _QeustionFormState extends State<QeustionForm> {
       key: _formKey,
       child: Column(
         children: [
+          // question title
           TextFormField(
+            controller: _questionTitleController,
             decoration: InputDecoration(
               labelText: "Enter question ?",
             ),
-            onChanged: onQuesitonTitle,
+            // onChanged: onQuesitonTitle,
           ),
-          Divider(),
-          // AGE SELECTOR
-          // SELECT GENDER
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              NumberPicker(
-                axis: Axis.horizontal,
-                itemHeight: 30,
-                itemWidth: 30,
-                minValue: 20,
-                maxValue: 100,
-                value: minAgeNumber,
-                onChanged: onMinAge,
-              ),
-              // Chip(
-              //   label: Text("<"),
-              // ),
-              Text(
-                "<",
-                style: TextStyle(fontSize: 30),
-              ),
-              Container(
-                child: DropdownButton(
-                  isExpanded: false,
-                  hint: Text("Select Gender"),
-                  value: selectedGender,
-                  onChanged: onGenderSelect,
-                  items: [
-                    DropdownMenuItem<String>(
-                      value: "men",
-                      child: Text("Men"),
-                    ),
-                    DropdownMenuItem<String>(
-                      value: "women",
-                      child: Text("Women"),
-                    ),
-                  ].toList(),
-                ),
-              ),
-              // Chip(
-              //   label: Text(">"),
-              // ),
 
-              Text(
-                ">",
-                style: TextStyle(fontSize: 30),
-              ),
-              NumberPicker(
-                axis: Axis.horizontal,
-                itemHeight: 30,
-                itemWidth: 30,
-                minValue: 20,
-                maxValue: 100,
-                value: maxAgeNumber,
-                onChanged: onMaxAge,
-              ),
-            ],
+          Divider(),
+
+          // age gender select
+          _buildAgeGenderSelect(),
+
+          // to all age group
+          Flexible(
+            child: CheckboxListTile(
+              title: Text("All Age Groups"),
+              value: toAllAgeGroup,
+              onChanged: _onAllAgeGroup,
+            ),
           ),
+
+          // create option input
           CreateOptionInput(),
           Divider(
             thickness: 4,
           ),
 
-          Expanded(
-            child: optionList(context),
-          ),
+          // option list
+          _buildOptionList(context),
         ],
       ),
     );
   }
+
+  Row _buildAgeGenderSelect() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        IgnorePointer(
+          ignoring: toAllAgeGroup,
+          child: NumberPicker(
+            axis: Axis.horizontal,
+
+            itemHeight: 30,
+            itemWidth: 30,
+            minValue: 20,
+            maxValue: 100,
+            value: minAgeNumber,
+            // value: adminStateModel.ageRangeGroup[0] as bool ? 20 : 0,
+            onChanged: onMinAge,
+          ),
+        ),
+        Container(
+          width: 30,
+          child: Chip(
+            padding: EdgeInsets.zero,
+            label: Text("<"),
+          ),
+        ),
+        Container(
+          child: DropdownButton(
+            isExpanded: false,
+            hint: Text("Select Gender"),
+            value: selectedGender.isEmpty ? null : selectedGender,
+            onChanged: onGenderSelect,
+            items: [
+              DropdownMenuItem<String>(
+                value: "men",
+                child: Text("Men"),
+              ),
+              DropdownMenuItem<String>(
+                value: "women",
+                child: Text("Women"),
+              ),
+            ].toList(),
+          ),
+        ),
+        Container(
+          width: 30,
+          child: Chip(
+            padding: EdgeInsets.zero,
+            label: Text(">"),
+          ),
+        ),
+        IgnorePointer(
+          ignoring: toAllAgeGroup,
+          child: NumberPicker(
+            axis: Axis.horizontal,
+            itemHeight: 30,
+            itemWidth: 30,
+            minValue: 20,
+            maxValue: 100,
+            value: maxAgeNumber,
+            onChanged: onMaxAge,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-Widget optionList(context) {
-  UserStateModel userState = Provider.of<UserStateModel>(context, listen: true);
+Widget _buildOptionList(context) {
+  AdminStateModel userState =
+      Provider.of<AdminStateModel>(context, listen: true);
 
   List<Map> options = userState.options;
-  // Map<int, dynamic> optionRiskValue = userState.optionRiskValue;
-  Map<String, dynamic> optionRiskValue = userState.optionTextValue;
 
-  return ListView.separated(
-    itemCount: options.length,
-    padding: const EdgeInsets.all(8),
-    shrinkWrap: true,
-    itemBuilder: (BuildContext context, int index) {
-      return ListTile(
-        leading: Chip(
-          label: Text("${options[index]['VALUE']}"),
-        ),
-        title: Text("${options[index]['TEXT']}"),
-        trailing: IconButton(
-          onPressed: () {
-            var toDeleteIndex = options.indexOf(options[index]);
-            userState.deleteOption(toDeleteIndex);
-          },
-          icon: Icon(Icons.delete),
-        ),
-      );
-    },
-    separatorBuilder: (BuildContext context, int index) => const Divider(),
+  return Container(
+    child: ListView.separated(
+      itemCount: options.length,
+      padding: const EdgeInsets.all(8),
+      shrinkWrap: true,
+      itemBuilder: (BuildContext context, int index) {
+        return ListTile(
+          leading: Chip(
+            label: Text("${options[index]['VALUE']}"),
+          ),
+          title: Text("${options[index]['TEXT']}"),
+          trailing: IconButton(
+            onPressed: () {
+              var toDeleteIndex = options.indexOf(options[index]);
+              userState.deleteOption(toDeleteIndex);
+            },
+            icon: Icon(Icons.delete),
+          ),
+        );
+      },
+      separatorBuilder: (BuildContext context, int index) => const Divider(),
+    ),
   );
 }
 
@@ -196,6 +249,12 @@ class _CreateOptionInputState extends State<CreateOptionInput> {
         optionText = text;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _textInputControllers.dispose();
   }
 
   @override
@@ -258,7 +317,7 @@ class _CreateOptionInputState extends State<CreateOptionInput> {
             onPressed: () {
               if (optionText.isNotEmpty) {
                 context
-                    .read<UserStateModel>()
+                    .read<AdminStateModel>()
                     .createOption(optionText, optionRiskValue);
 
                 setState(() {

@@ -1,4 +1,4 @@
-import 'package:expert_diagnosis/Store/UserStateModel.dart';
+import 'package:expert_diagnosis/Store/AdminStateModel.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +9,7 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   runApp(ChangeNotifierProvider(
-    create: (context) => (UserStateModel()),
+    create: (context) => (AdminStateModel()),
     child: MainApp(),
   ));
 }

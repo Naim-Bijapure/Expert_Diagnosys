@@ -1,4 +1,4 @@
-import 'package:expert_diagnosis/Store/UserStateModel.dart';
+import 'package:expert_diagnosis/Store/AdminStateModel.dart';
 import 'package:expert_diagnosis/constants/index.dart';
 import 'package:expert_diagnosis/screens/ManageQuestions/screens/widgets/QuestionForm.dart';
 import 'package:expert_diagnosis/services/DialogService.dart';
@@ -14,6 +14,47 @@ class EnterQuestion extends StatefulWidget {
 }
 
 class _EnterQuestionState extends State<EnterQuestion> {
+  // refreshing the form widget with unique time stamp key
+  var uniquKey = DateTime.now().microsecondsSinceEpoch;
+
+  // on save question data
+  void _onSave(context) async {
+    AdminStateModel adminStateModel =
+        Provider.of<AdminStateModel>(context, listen: false);
+
+// get currrent queston data
+    var currentQuestionData = adminStateModel.currentQuestionData;
+
+    if ((currentQuestionData["question"] as String).isEmpty ||
+        (currentQuestionData["options"] as List).isEmpty ||
+        (currentQuestionData["gender"] as String).isEmpty) {
+      dialogService.createDiallog(
+        context,
+        ALERT_CHECK,
+        backDropClose: true,
+        alertext: "please fill form correctly !",
+      );
+      return;
+    }
+    // saving data on firebase
+    await saveQuestionData(currentQuestionData, context);
+
+// after saving succesfull
+    dialogService.createDiallog(
+      context,
+      ALERT_CHECK,
+      backDropClose: true,
+      alertext: "Queestion created successfully",
+    );
+
+    // reset quesiton data
+    adminStateModel.resetQuestionData();
+    // after changing the  key form data will
+    setState(() {
+      uniquKey = DateTime.now().microsecondsSinceEpoch;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,28 +63,14 @@ class _EnterQuestionState extends State<EnterQuestion> {
         title: Text("Enter Question"),
       ),
       body: Container(
-        padding: EdgeInsets.all(20),
-        child: QeustionForm(),
+        padding: EdgeInsets.all(10),
+        child: QeustionForm(
+          key: Key("$uniquKey"),
+        ),
       ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          // get currrent queston data
-          var currentQuestionData =
-              context.read<UserStateModel>().currentQuestionData;
-
-          if ((currentQuestionData["question"] as String).isEmpty ||
-              (currentQuestionData["options"] as List).isEmpty) {
-            dialogService.createDiallog(context, ALERT_CHECK,
-                backDropClose: true, alertext: "please fill form correctly !");
-            return;
-          }
-          // saving data on firebase
-          await saveQuestionData(currentQuestionData, context);
-
-          // reset quesiton data
-          context.read<UserStateModel>().resetQuestionData();
-        },
+        onPressed: () => (this._onSave(context)),
         tooltip: 'Add Question',
         child: Icon(Icons.save),
       ), // This trailing comma makes auto-formatting nicer for build methods.
