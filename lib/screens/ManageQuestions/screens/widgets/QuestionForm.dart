@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:provider/provider.dart';
 
+import 'CreateOptionInput.dart';
+
 class QeustionForm extends StatefulWidget {
-  QeustionForm({Key? key}) : super(key: key);
+  const QeustionForm({Key? key}) : super(key: key);
 
   @override
   _QeustionFormState createState() => _QeustionFormState();
@@ -16,9 +18,10 @@ class _QeustionFormState extends State<QeustionForm> {
   int minAgeNumber = 20;
   int maxAgeNumber = 20;
   bool toAllAgeGroup = false;
-  TextEditingController _questionTitleController = TextEditingController();
+  final TextEditingController _questionTitleController =
+      TextEditingController();
 
-  String selectedGender = "";
+  String selectedGender = '';
 
   late AdminStateModel adminStateModel;
   // LIFE CYCLES
@@ -29,8 +32,8 @@ class _QeustionFormState extends State<QeustionForm> {
 
     // text controller listener
     _questionTitleController.addListener(() {
-      String text = _questionTitleController.text;
-      this.onQuesitonTitle(text);
+      final String text = _questionTitleController.text;
+      onQuesitonTitle(text);
     });
   }
 
@@ -89,7 +92,7 @@ class _QeustionFormState extends State<QeustionForm> {
           TextFormField(
             controller: _questionTitleController,
             decoration: InputDecoration(
-              labelText: "Enter question ?",
+              labelText: 'Enter question ?',
             ),
             // onChanged: onQuesitonTitle,
           ),
@@ -102,19 +105,19 @@ class _QeustionFormState extends State<QeustionForm> {
           // to all age group
           Flexible(
             child: CheckboxListTile(
-              title: Text("All Age Groups"),
+              title: Text('All Age Groups'),
               value: toAllAgeGroup,
               onChanged: _onAllAgeGroup,
             ),
           ),
 
-          // create option input
+          // CREATE OPTION INPUT
           CreateOptionInput(),
           Divider(
             thickness: 4,
           ),
 
-          // option list
+          // OPTION LIST
           _buildOptionList(context),
         ],
       ),
@@ -143,23 +146,23 @@ class _QeustionFormState extends State<QeustionForm> {
           width: 30,
           child: Chip(
             padding: EdgeInsets.zero,
-            label: Text("<"),
+            label: Text('<'),
           ),
         ),
         Container(
           child: DropdownButton(
             isExpanded: false,
-            hint: Text("Select Gender"),
+            hint: Text('Select Gender'),
             value: selectedGender.isEmpty ? null : selectedGender,
             onChanged: onGenderSelect,
             items: [
               DropdownMenuItem<String>(
-                value: "men",
-                child: Text("Men"),
+                value: 'men',
+                child: Text('Men'),
               ),
               DropdownMenuItem<String>(
-                value: "women",
-                child: Text("Women"),
+                value: 'women',
+                child: Text('Women'),
               ),
             ].toList(),
           ),
@@ -168,7 +171,7 @@ class _QeustionFormState extends State<QeustionForm> {
           width: 30,
           child: Chip(
             padding: EdgeInsets.zero,
-            label: Text(">"),
+            label: Text('>'),
           ),
         ),
         IgnorePointer(
@@ -189,10 +192,10 @@ class _QeustionFormState extends State<QeustionForm> {
 }
 
 Widget _buildOptionList(context) {
-  AdminStateModel userState =
+  final AdminStateModel userState =
       Provider.of<AdminStateModel>(context, listen: true);
 
-  List<Map> options = userState.options;
+  final List<Map> options = userState.options;
 
   return Container(
     child: ListView.separated(
@@ -207,7 +210,7 @@ Widget _buildOptionList(context) {
           title: Text("${options[index]['TEXT']}"),
           trailing: IconButton(
             onPressed: () {
-              var toDeleteIndex = options.indexOf(options[index]);
+              final toDeleteIndex = options.indexOf(options[index]);
               userState.deleteOption(toDeleteIndex);
             },
             icon: Icon(Icons.delete),
@@ -217,125 +220,4 @@ Widget _buildOptionList(context) {
       separatorBuilder: (BuildContext context, int index) => const Divider(),
     ),
   );
-}
-
-class CreateOptionInput extends StatefulWidget {
-  const CreateOptionInput({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  _CreateOptionInputState createState() => _CreateOptionInputState();
-}
-
-class _CreateOptionInputState extends State<CreateOptionInput> {
-  final TextEditingController _textInputControllers = TextEditingController();
-
-  String optionText = "";
-  int optionRiskValue = 0;
-
-  void optionRiskHandler(value) {
-    setState(() {
-      optionRiskValue = value;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _textInputControllers.addListener(() {
-      String text = _textInputControllers.text;
-      setState(() {
-        optionText = text;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _textInputControllers.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _textInputControllers,
-                      autofocus: true,
-                      keyboardType: TextInputType.multiline,
-                      maxLines: 5,
-                      minLines: 1,
-                      decoration: InputDecoration(
-                        labelText: "Enter Option",
-                        border: OutlineInputBorder(),
-                      ),
-                      // onChanged: (value) {
-                      //   setState(() {
-                      //     optionText = value.toString();
-                      //   });
-                      // },
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: NumberPicker(
-                      // axis: Axis.horizontal,
-                      itemHeight: 30,
-                      itemWidth: 30,
-                      minValue: 0,
-                      maxValue: 100,
-                      value: optionRiskValue,
-                      onChanged: optionRiskHandler,
-                    ),
-                  ),
-                  Text(
-                    "risk",
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          OutlinedButton(
-            onPressed: () {
-              if (optionText.isNotEmpty) {
-                context
-                    .read<AdminStateModel>()
-                    .createOption(optionText, optionRiskValue);
-
-                setState(() {
-                  _textInputControllers.text = "";
-                  optionRiskValue = 0;
-                });
-              }
-            },
-            child: Text("Create Option"),
-            style: OutlinedButton.styleFrom(
-              primary: Theme.of(context).primaryColor,
-              side: BorderSide(
-                color: Theme.of(context).primaryColor,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

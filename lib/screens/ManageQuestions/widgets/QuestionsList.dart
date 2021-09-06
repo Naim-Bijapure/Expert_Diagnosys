@@ -1,4 +1,5 @@
 import 'package:expert_diagnosis/Store/AdminStateModel.dart';
+import 'package:expert_diagnosis/screens/ManageQuestions/widgets/QuestionsListView.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,31 +24,38 @@ class _QuestionsListState extends State<QuestionsList> {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> questionsData =
+    final List<Map<String, dynamic>> questionsData =
         context.watch<AdminStateModel>().questionsData;
 
-    bool isQuestionsEmpty = context.watch<AdminStateModel>().isQuestionsEmpty;
+    final bool isQuestionsEmpty =
+        context.watch<AdminStateModel>().isQuestionsEmpty;
 
-    String currentSelectedAgeGroup =
+    final String currentSelectedAgeGroup =
         context.watch<AdminStateModel>().currentSelectedAgeGroup;
 
-    if (questionsData.length > 0) {
-      return SingleChildScrollView(
-        child: QuestionExpansionPanel(
-          key: Key("${currentSelectedAgeGroup}_${questionsData.length}"),
-          qustionsData: questionsData,
-        ),
+    if (questionsData.isNotEmpty) {
+      // return SingleChildScrollView(
+      //   child: QuestionExpansionPanel(
+      //     key: Key('${currentSelectedAgeGroup}_${questionsData.length}'),
+      //     qustionsData: questionsData,
+      //   ),
+      // );
+
+      // print('questionsData: $questionsData');
+      return QuestionListView(
+        key: Key('${currentSelectedAgeGroup}_${questionsData.length}'),
+        questionsList: questionsData,
       );
     }
     // if no questions
     if (isQuestionsEmpty) {
-      return Text("No questions added");
+      return Text('No questions added');
     }
 
 // default loading
     return Center(
       // child: CircularProgressIndicator(),
-      child: Text("Select Age Group"),
+      child: Text('Select Age Group'),
     );
   }
 }

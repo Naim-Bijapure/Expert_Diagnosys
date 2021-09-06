@@ -1,6 +1,8 @@
 import 'package:expert_diagnosis/Store/AdminStateModel.dart';
-import 'package:flutter/material.dart';
+import 'package:expert_diagnosis/Store/UserStateMode.dart';
+import 'package:expert_diagnosis/Store/user_state.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'HomePage.dart';
@@ -8,8 +10,23 @@ import 'HomePage.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(ChangeNotifierProvider(
-    create: (context) => (AdminStateModel()),
+  // runApp(ChangeNotifierProvider(
+  //   create: (context) => AdminStateModel(),
+  //   child: MainApp(),
+  // ));
+
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(
+        create: (context) => AdminStateModel(),
+      ),
+      ChangeNotifierProvider(
+        create: (context) => UserStateModel(),
+      ),
+      Provider(
+        create: (context) => UserState(),
+      ),
+    ],
     child: MainApp(),
   ));
 }
@@ -32,7 +49,7 @@ class _MainAppState extends State<MainApp> {
         // for any error
         if (snapshot.hasError) {
           // TODO:  MAKE A WIDGET TO SHOW PROPER LOADING
-          return Text("someting is wrong", textDirection: TextDirection.ltr);
+          return Text('someting is wrong', textDirection: TextDirection.ltr);
         }
 
         // if state is done
@@ -40,7 +57,7 @@ class _MainAppState extends State<MainApp> {
           return Home();
         }
 
-        return Text("loading...", textDirection: TextDirection.ltr);
+        return Text('loading...', textDirection: TextDirection.ltr);
       },
     );
   }

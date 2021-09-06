@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class StepperScreenInputForm extends StatefulWidget {
-  StepperScreenInputForm({Key? key, @required this.submitHandler})
+  const StepperScreenInputForm({Key? key, @required this.submitHandler})
       : super(key: key);
 
   final submitHandler;
@@ -14,15 +14,15 @@ class StepperScreenInputForm extends StatefulWidget {
 class _StepperScreenInputFormState extends State<StepperScreenInputForm> {
   final _formKey = GlobalKey<FormState>();
 
-  String userName = "";
+  String userName = '';
   int userAge = 0;
-  String genderType = "";
+  String genderType = '';
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       scrollable: true,
-      title: Text("User Details"),
+      title: Text('User Details'),
       content: Padding(
         padding: const EdgeInsets.all(0.8),
         child: Form(
@@ -53,7 +53,7 @@ class _StepperScreenInputFormState extends State<StepperScreenInputForm> {
               Row(
                 children: [
                   Radio(
-                      value: "men",
+                      value: 'men',
                       groupValue: genderType,
                       onChanged: (value) {
                         print('value, $value');
@@ -61,9 +61,9 @@ class _StepperScreenInputFormState extends State<StepperScreenInputForm> {
                           genderType = value.toString();
                         });
                       }),
-                  Text("Male"),
+                  Text('Male'),
                   Radio(
-                      value: "women",
+                      value: 'women',
                       groupValue: genderType,
                       onChanged: (value) {
                         print('value, $value');
@@ -71,7 +71,7 @@ class _StepperScreenInputFormState extends State<StepperScreenInputForm> {
                           genderType = value.toString();
                         });
                       }),
-                  Text("Female"),
+                  Text('Female'),
                 ],
               ),
 
@@ -109,26 +109,28 @@ class _StepperScreenInputFormState extends State<StepperScreenInputForm> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               widget.submitHandler({
-                "userName": userName,
-                "userAge": userAge,
-                "genderType": genderType
+                'userName': userName,
+                'userAge': userAge,
+                'genderType': genderType
               });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    duration: Duration(seconds: 2),
-                    content: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Fetching Questions..'),
-                        CircularProgressIndicator(),
-                      ],
-                    )),
-              );
+
+              // ScaffoldMessenger.of(context).showSnackBar(
+              //   SnackBar(
+              //     duration: Duration(seconds: 2),
+              //     content: Row(
+              //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //       children: [
+              //         Text('Fetching Questions..'),
+              //         CircularProgressIndicator(),
+              //       ],
+              //     ),
+              //   ),
+              // );
 
               Navigator.pop(context);
             }
           },
-          child: Text("submit"),
+          child: Text('submit'),
         )
       ],
     );

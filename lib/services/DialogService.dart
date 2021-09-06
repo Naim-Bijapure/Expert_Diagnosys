@@ -18,19 +18,20 @@ import 'package:flutter/material.dart';
 
 class DialogService {
   Future createDiallog(context, dialogType,
-      {alertext = "Default Text",
+      {alertext = 'Default Text',
       bool backDropClose = false,
-      submitHandler: false}) {
+      submitHandler = false}) {
     return showDialog(
-        barrierDismissible: backDropClose,
-        context: context,
-        builder: (BuildContext context) {
-          return InputModal(
-            fromScreen: dialogType,
-            submitHandler: submitHandler,
-            alertText: alertext,
-          );
-        });
+      barrierDismissible: backDropClose,
+      context: context,
+      builder: (BuildContext context) {
+        return InputModal(
+          fromScreen: dialogType,
+          submitHandler: submitHandler,
+          alertText: alertext,
+        );
+      },
+    );
   }
 }
 

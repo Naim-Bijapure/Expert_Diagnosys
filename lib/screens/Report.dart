@@ -7,9 +7,9 @@ class Report extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("User x report"),
+        title: Text('User x report'),
       ),
-      body: Text("Report Screen"),
+      body: Text('Report Screen'),
     );
   }
 }

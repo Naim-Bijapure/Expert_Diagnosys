@@ -1,8 +1,8 @@
-final SELECT_AGE_GROUP = "Select age group";
+const SELECT_AGE_GROUP = 'Select age group';
 
-final MANAGE_QUESTION_FORM = "manageQuesitonForm";
+const MANAGE_QUESTION_FORM = 'manageQuesitonForm';
 
-final STEPPER_FORM = "StepForm";
+const STEPPER_FORM = 'StepForm';
 
 
-final ALERT_CHECK = "alertCheck";
+const ALERT_CHECK = 'alertCheck';

@@ -21,7 +21,7 @@ class InputModal extends StatelessWidget {
     // on question step form
     if (fromScreen == STEPPER_FORM) {
       return StepperScreenInputForm(
-        submitHandler: this.submitHandler,
+        submitHandler: submitHandler,
       );
     }
 
@@ -33,9 +33,9 @@ class InputModal extends StatelessWidget {
 
     // custom dialog to print
     if (fromScreen == ALERT_CHECK) {
-      return CustomAlertDialog(alertText: this.alertText);
+      return CustomAlertDialog(alertText: alertText);
     }
 
-    return Text("no form defined !!");
+    return Text('no form defined !!');
   }
 }

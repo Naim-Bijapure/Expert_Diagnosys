@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'QuestionsList.dart';
 
 class WomenQuestions extends StatefulWidget {
-  WomenQuestions({Key? key}) : super(key: key);
+  const WomenQuestions({Key? key}) : super(key: key);
 
   @override
   _WomenQuestionsState createState() => _WomenQuestionsState();
@@ -30,7 +30,7 @@ class _WomenQuestionsState extends State<WomenQuestions> {
     return Column(
       children: [
         AgeRangeDropDown(
-          genderType: "women",
+          genderType: 'women',
         ),
         Divider(),
         QuestionsList()

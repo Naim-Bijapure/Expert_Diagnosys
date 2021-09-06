@@ -8,8 +8,8 @@ class CustomAlertDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       scrollable: true,
-      title: Text("Alert"),
-      content: Text("${this.alertText}"),
+      title: Text('Alert'),
+      content: Text('${alertText}'),
     );
   }
 }

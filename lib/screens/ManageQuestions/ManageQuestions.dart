@@ -1,44 +1,32 @@
 import 'package:expert_diagnosis/Store/AdminStateModel.dart';
-import 'package:expert_diagnosis/constants/index.dart';
 import 'package:expert_diagnosis/screens/ManageQuestions/screens/EnterQuestion.dart';
 import 'package:expert_diagnosis/screens/ManageQuestions/widgets/MenQuestions.dart';
 import 'package:expert_diagnosis/screens/ManageQuestions/widgets/WomenQuestions.dart';
-import 'package:expert_diagnosis/services/DialogService.dart';
+import 'package:expert_diagnosis/utility/index.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class ManageQuestions extends StatefulWidget {
-  ManageQuestions({Key? key}) : super(key: key);
+  const ManageQuestions({Key? key}) : super(key: key);
 
   @override
   _ManageQuestionsState createState() => _ManageQuestionsState();
 }
 
 class _ManageQuestionsState extends State<ManageQuestions> {
-  var uniqueKey = DateTime.now().microsecondsSinceEpoch;
+  // unique key to reset form
+  int uniqueKey = DateTime.now().microsecondsSinceEpoch;
 
-  void _submitHandler(data) {
-    print('data, $data');
-  }
-
-  Future onInputForm(context) {
-    return dialogService.createDiallog(
-      context,
-      MANAGE_QUESTION_FORM,
-      submitHandler: _submitHandler,
-    );
-  }
-
+  ///  GO TO CREATE QUESTION FORM SCREEN
   void onAddQuesitonScreen(context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => (EnterQuestion()),
-      ),
-    );
-    print("on back screen");
-    Provider.of<AdminStateModel>(context, listen: false).resetSelectedData();
-    // updating the key to refresh the selected states
-    this.setState(() {
+    await gotoScreen(context, EnterQuestion());
+    // resetting the selected drop down option and questions when going back
+    // Provider.of<AdminStateModel>(context, listen: false).resetSelectedData();
+
+    AdminStateModel adminState = readStateOf<AdminStateModel>(context);
+    adminState.resetSelectedData();
+
+    /// changing the key to refresh the data when user come back on question list screen
+    setState(() {
       uniqueKey = DateTime.now().microsecondsSinceEpoch;
     });
   }
@@ -50,36 +38,49 @@ class _ManageQuestionsState extends State<ManageQuestions> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Manage Questions"),
-          bottom: TabBar(
-            tabs: [
-              Tab(icon: Icon(Icons.male)),
-              Tab(icon: Icon(Icons.female)),
-            ],
-          ),
+          title: const Text('Manage Questions'),
+          bottom: _buildTabBar(),
         ),
-        body: TabBarView(children: <Widget>[
-          Container(
-            child: MenQuestions(
-              key: Key("$uniqueKey"),
-            ),
-          ),
-          Container(
-            child: WomenQuestions(
-              key: Key("$uniqueKey"),
-            ),
-          ),
-        ]),
+        body: _buildTabBarView(),
 
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            // onInputForm(context);
-            onAddQuesitonScreen(context);
-          },
-          tooltip: 'Add Question',
-          child: Icon(Icons.add),
+        floatingActionButton: _openFormFloatActionButton(
+          context,
         ), // This trailing comma makes auto-formatting nicer for build methods.
       ),
+    );
+  }
+
+  FloatingActionButton _openFormFloatActionButton(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () => (onAddQuesitonScreen(context)),
+      tooltip: 'Add Question',
+      child: Icon(Icons.add),
+    );
+  }
+
+  TabBarView _buildTabBarView() {
+    return TabBarView(children: <Widget>[
+      // MEN QUESTION TAB SCREEN
+      Container(
+        child: MenQuestions(
+          key: Key('$uniqueKey'),
+        ),
+      ),
+      // WOMEN QUESTION TAB SCREEN
+      Container(
+        child: WomenQuestions(
+          key: Key('$uniqueKey'),
+        ),
+      ),
+    ]);
+  }
+
+  TabBar _buildTabBar() {
+    return const TabBar(
+      tabs: [
+        Tab(icon: Icon(Icons.male)),
+        Tab(icon: Icon(Icons.female)),
+      ],
     );
   }
 }

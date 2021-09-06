@@ -1,43 +1,87 @@
-import 'dart:async';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:expert_diagnosis/widgets/InputModal.dart';
+import 'package:expert_diagnosis/Store/UserStateMode.dart';
+import 'package:expert_diagnosis/Store/user_state.dart';
+import 'package:expert_diagnosis/constants/index.dart';
+import 'package:expert_diagnosis/services/DialogService.dart';
+import 'package:expert_diagnosis/utility/index.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:mobx/mobx.dart';
+
+import 'question_steps.dart';
 
 class StepperForm extends StatefulWidget {
-  StepperForm({Key? key}) : super(key: key);
+  const StepperForm({Key? key}) : super(key: key);
 
   @override
   _StepperFormState createState() => _StepperFormState();
 }
 
-enum RadioSmoking { yes, no }
-
 class _StepperFormState extends State<StepperForm> {
-  RadioSmoking? _character;
-
   int currentStep = 0;
-  String DropDownValue = "Select";
   bool complete = false;
+  String genderType = "";
 
-  Map<String, Object> userDetails = {};
-  late Stream<QuerySnapshot> questionsStream;
+  late UserStateModel userState;
+  late var disposeReaction;
+
+  // Map<String, dynamic> userDetails = {};
+
+  // FIXME:TEMP mock data
+  Map<String, dynamic> userDetails = {
+    "userName": "sdfsf",
+    "userAge": 33,
+    "genderType": "men"
+  };
+  // late Stream<QuerySnapshot> questionsStream;
 
   @override
   void initState() {
-    _character = RadioSmoking.yes;
     super.initState();
 
     // invoking  a pop up
-    // WidgetsBinding.instance!.addPostFrameCallback((_) async {
-    //   await this.onInputForm(context);
-    // });
-    Timer.run(() async {
-      await this.onInputForm(context);
-    });
-    // Timer(Duration(seconds: 1), () async {
+    WidgetsBinding.instance!.addPostFrameCallback(this.afterBuild);
+  }
+
+  void afterBuild(_) async {
+    /// open input form
+    // FIXME:TEMP STOPPED
     // await this.onInputForm(context);
+
+    /// fetch question data and store in main user state
+    // var questionData = await dbService.getQuestions(userDetails["genderType"]);
+    // readStateOf<UserStateModel>(context).updateQuestionData(questionData);
+
+    /// with mobx
+    readStateOf<UserState>(context).loadQuestions(userDetails["genderType"]);
+
+    // disposeReaction = autorun((_) {
+    //   print('AUTORUN VALUE ');
+    //   print(readStateOf<UserState>(context).selectedOptionData);
     // });
+    var userState = readStateOf<UserState>(context);
+    disposeReaction = when(
+      (_) => (userState.totalRiskValue >= 15),
+      () {
+        print('WHEN RISK VALUE IS ABOVE 15: ${userState.totalRiskValue}');
+        var Q = {
+          "id": "EXTRA QUESTION",
+          "ageRange": [20, 40],
+          "question": "cool man",
+          "gender": "men",
+          "options": [
+            {"TEXT": "yo option", "VALUE": 10}
+          ]
+        };
+        var qustions = [...readStateOf<UserState>(context).questions, Q];
+
+        // int riskVal = readStateOf<UserState>(context).totalRiskValue;
+        // print('riskVal: $riskVal');
+        // print('riskVal: $riskVal');
+        // if (riskVal == 15) {
+        readStateOf<UserState>(context).updateQuestion(qustions);
+        // }
+      },
+    );
   }
 
   inputModelFormHandler(Map<String, Object> formData) {
@@ -45,243 +89,84 @@ class _StepperFormState extends State<StepperForm> {
     setState(() {
       userDetails = formData;
     });
-
-    // final Stream<QuerySnapshot> qStream = FirebaseFirestore.instance
-    //     .collection("ED")
-    //     .where("Gender", isEqualTo: "male")
-    //     .snapshots();
-
-    var genderType = formData["genderType"];
-    final Stream<QuerySnapshot> qStream = FirebaseFirestore.instance
-        .collection("ED")
-        .doc("Questions")
-        .collection("$genderType")
-        .snapshots();
-
-    setState(() {
-      questionsStream = qStream;
-    });
   }
 
+  // on dispose widget
+  @override
+  void dispose() {
+    super.dispose();
+    disposeReaction();
+  }
+
+  ///POP UP INPUT FORM ON SCREEN
   Future onInputForm(context) {
-    return showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (BuildContext context) {
-          return InputModal(
-            fromScreen: "StepForm",
-            submitHandler: inputModelFormHandler,
-          );
-        });
-  }
-
-  // List<Step> get _steps => <Step>[..._questionSteps()];
-
-  /// todo steps
-  /// 1. connecte with firebase get data with hard core
-  /// 2. make a dynamic component
-  @override
-  Widget build(BuildContext context) {
-    if (userDetails.isEmpty == false) {
-      return StreamBuilder<QuerySnapshot>(
-          stream: this.questionsStream,
-          builder:
-              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            // snapshot.data?.docs.map((DocumentSnapshot document) {
-            //   var data = document.data();
-            //   print('data, $data');
-            // }).toList();
-
-            // on error
-            if (snapshot.hasError) {
-              return Text("something went wrong");
-            }
-
-            // on loading
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-              // return Text("loading");
-            }
-            // preparing the questiong data from db
-            List<Map<dynamic, dynamic>> questionsData = snapshot.data!.docs
-                .map<Map<dynamic, dynamic>>(
-                  (DocumentSnapshot doccument) {
-                    var elementData = doccument.data() as Map<dynamic, dynamic>;
-
-                    // filtering with age date range
-                    if (elementData["ageRange"][0] <= userDetails["userAge"] &&
-                        elementData["ageRange"][1] >= userDetails["userAge"]) {
-                      return {...elementData, "qId": doccument.id};
-                    }
-                    return {};
-                  },
-                )
-                .where((element) => element.isEmpty == false)
-                .toList();
-
-            // if data is empty
-            if (questionsData.isEmpty) {
-              return Text("Sorry no questions available :(");
-            }
-
-            // sending the question data to question widget
-            return QuestionSteps(questionData: questionsData);
-          });
-    }
-
-    return Text("");
-  }
-}
-
-// dynamic question step widget
-class QuestionSteps extends StatefulWidget {
-  QuestionSteps({Key? key, required this.questionData}) : super(key: key);
-
-  List questionData;
-
-  @override
-  _QuestionStepsState createState() => _QuestionStepsState();
-}
-
-class _QuestionStepsState extends State<QuestionSteps> {
-  late List<Step> questionSteps = [];
-  int currentStep = 0;
-  bool complete = false;
-  Map optionSelectedGroup = {};
-
-  @override
-  void initState() {
-    super.initState();
-// [{
-//  ageRange: [20, 34],
-//  question: Are you smoke ?,
-//  options: [{TEXT: yes, VALUE: 2},  {TEXT: no, VALUE: 0}]
-//  },
-// {ageRange: [20, 34],
-//  question: Chest pain ? ,
-//  options: [{TEXT: yes, VALUE: 5}, {TEXT: no, VALUE: 0}]
-// }
-// ]
-
-    setState(() {
-      questionSteps = this._getQuetionSteps();
-    });
-  }
-
-  void onSelectOption(qId, question, selectedOptionValue) {
-    // print('selectedOption, $selectedOptionValue, question $qId');
-    setState(() {
-      // optionSelectedGroup[qId] = selectedOptionValue;
-      optionSelectedGroup[qId] = {
-        "question": question,
-        "selectedRiskValue": selectedOptionValue
-      };
-    });
-  }
-
-  List<Step> get _steps => <Step>[..._getQuetionSteps()];
-
-  Widget _buildOption(List option, String qId, String question,
-      Function onSelectOption, Map optionSelectedGroup) {
-    // print('optionSelectedGroup, $optionSelectedGroup');
-    return Column(
-      children: option.map<Widget>((item) {
-        return Row(
-          children: <Widget>[
-            Radio<int>(
-              value: item["VALUE"],
-              groupValue: optionSelectedGroup[qId]?["selectedRiskValue"],
-              onChanged: (value) {
-                print('value, $value');
-                onSelectOption(qId, question, value);
-              },
-            ),
-            Text(item["TEXT"]),
-          ],
-        );
-      }).toList(),
-      // [
-      //   Radio(
-      //       value: int.parse(item["VALUE"]),
-      //       groupValue: 2,
-      //       onChanged: (value) {
-      //         print('value, $value');
-      //       }),
-      //   Text(item["TEXT"]),
-      // ]
-    );
-  }
-
-  List<Step> _getQuetionSteps() {
-    return widget.questionData.map((questionObj) {
-      return Step(
-        isActive: true,
-        // state: ,
-        title: Text(questionObj["question"]),
-        content: Container(
-          alignment: Alignment.centerLeft,
-          // child: Text(questionObj["question"] +
-          //     " is this last step ${currentStep} and total steps ${questionSteps.length}"),
-          child: _buildOption(questionObj["options"], questionObj["qId"],
-              questionObj["question"], onSelectOption, optionSelectedGroup),
-        ),
-      );
-    }).toList();
-  }
-
-  goTo(int step) {
-    setState(() => currentStep = step);
-  }
-
-  next() {
-    currentStep + 1 != questionSteps.length
-        ? goTo(currentStep + 1)
-        : setState(() {
-            complete = true;
-          });
-  }
-
-  cancel() {
-    if (currentStep > 0) {
-      goTo(currentStep - 1);
-    }
-  }
-
-  Widget __nextComplteAction(onStepContinue) {
-    // on step complte action
-    return ElevatedButton(
-      onPressed: () {
-        onStepContinue!();
-        if (currentStep == _steps.length - 1) {
-          print('completed $optionSelectedGroup');
-        }
-      },
-      child: currentStep == _steps.length - 1 ? Text('Complete') : Text('Next'),
+    return dialogService.createDiallog(
+      context,
+      STEPPER_FORM,
+      submitHandler: inputModelFormHandler,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Stepper(
-          steps: _steps,
-          currentStep: currentStep,
-          onStepContinue: next,
-          onStepTapped: (step) => goTo(step),
-          onStepCancel: cancel,
-          controlsBuilder: (BuildContext context,
-              {VoidCallback? onStepContinue, VoidCallback? onStepCancel}) {
-            return Row(
-              children: <Widget>[
-                __nextComplteAction(onStepContinue),
-                SizedBox(width: 50),
-                TextButton(
-                  onPressed: onStepCancel,
-                  child: const Text('Cancle'),
-                ),
+    // userState = watchStateOf<UserStateModel>(this.context);
+    // print('userState risk value: ${userState.totalRiskValue}');
+
+    // var userStateMobx = readStateOf<UserState>(this.context);
+    // var questionX = userStateMobx.questions?.result;
+    // print(' MOBX questionX: $questionX');
+
+    /// watching on questions
+    // List questions = userState.questions;
+
+    // if (userDetails.isEmpty == false) {
+    //   if (questions.isNotEmpty) {
+    //     /// question steps with steper
+    //     return QuestionSteps(
+    //       questionData: questions,
+    //     );
+    //   }
+
+    //   if (questions.isEmpty) {
+    //     return Center(
+    //       child: Column(
+    //         mainAxisAlignment: MainAxisAlignment.center,
+    //         crossAxisAlignment: CrossAxisAlignment.center,
+    //         children: [
+    //           CircularProgressIndicator(),
+    //         ],
+    //       ),
+    //     );
+    //   }
+    // }
+
+    return Observer(
+      builder: (_) {
+        print('STEPPER FORM ');
+        var userState = readStateOf<UserState>(this.context);
+
+        var questionsFuture = userState.questionsFuture;
+
+        if (questionsFuture == null ||
+            questionsFuture.status == FutureStatus.pending) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
               ],
-            );
-          }),
+            ),
+          );
+        }
+
+        // print('userState: ${userState.questions}');
+        if (userState.questions.length > 0) {
+          return QuestionSteps();
+        }
+
+        return CircularProgressIndicator();
+      },
     );
   }
 }

@@ -9,13 +9,10 @@ class AnalysisForm extends StatelessWidget {
     return Container(
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Analysis form"),
+          title: Text('Analysis form'),
         ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            StepperForm(),
-          ],
+        body: Container(
+          child: StepperForm(),
         ),
       ),
     );

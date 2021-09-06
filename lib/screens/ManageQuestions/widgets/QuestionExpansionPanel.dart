@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class QuestionExpansionPanel extends StatefulWidget {
-  QuestionExpansionPanel({Key? key, required this.qustionsData})
+  const QuestionExpansionPanel({Key? key, required this.qustionsData})
       : super(key: key);
 
   final List<Map<String, dynamic>> qustionsData;
@@ -21,7 +21,7 @@ class _QuestionExpansionPanelState extends State<QuestionExpansionPanel> {
     super.initState();
     _questions = widget.qustionsData.map(
       (element) {
-        element["isExpaned"] = false;
+        element['isExpaned'] = false;
         return element;
       },
     ).toList();
@@ -29,12 +29,12 @@ class _QuestionExpansionPanelState extends State<QuestionExpansionPanel> {
 
   @override
   Widget build(BuildContext context) {
-    if (_questions.length > 0) {
+    if (_questions.isNotEmpty) {
       return ExpansionPanelList(
-        key: Key("${_questions.length}"),
+        key: Key('${_questions.length}'),
         expansionCallback: (int index, bool isExpaned) {
           setState(() {
-            _questions[index]["isExpanded"] = !isExpaned;
+            _questions[index]['isExpanded'] = !isExpaned;
           });
         },
         children: _questions.map<ExpansionPanel>((Map item) {
@@ -42,12 +42,12 @@ class _QuestionExpansionPanelState extends State<QuestionExpansionPanel> {
               headerBuilder: (BuildContext context, bool isExpaned) {
                 return _questionTitleRow(item);
               },
-              body: optionListView(item["options"] ?? []),
-              isExpanded: item["isExpanded"] ?? false);
+              body: optionListView(item['options'] ?? []),
+              isExpanded: item['isExpanded'] ?? false);
         }).toList(),
       );
     }
-    return Text("wait");
+    return Text('wait');
   }
 
   Widget optionListView(List options) {
@@ -62,7 +62,7 @@ class _QuestionExpansionPanelState extends State<QuestionExpansionPanel> {
             ),
           ),
           title: Text(
-            options[index]["TEXT"],
+            options[index]['TEXT'],
           ),
         );
       },
@@ -75,7 +75,7 @@ class _QuestionExpansionPanelState extends State<QuestionExpansionPanel> {
       children: [
         Flexible(
           child: ListTile(
-            title: Text(item["question"]),
+            title: Text(item['question']),
           ),
         ),
         IconButton(
@@ -85,8 +85,10 @@ class _QuestionExpansionPanelState extends State<QuestionExpansionPanel> {
         ),
         IconButton(
           onPressed: () {
-            AdminStateModel adminStateModel = context.read<AdminStateModel>();
-            String currentGenderType = adminStateModel.currentSelectedGender;
+            final AdminStateModel adminStateModel =
+                context.read<AdminStateModel>();
+            final String currentGenderType =
+                adminStateModel.currentSelectedGender;
             adminStateModel.deleteQuesiton(item, currentGenderType);
           },
           icon: Icon(Icons.delete),

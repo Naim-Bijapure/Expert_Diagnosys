@@ -1,22 +1,21 @@
 import 'package:expert_diagnosis/services/DbService.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer';
 
 class AdminStateModel extends ChangeNotifier {
 // PROPERTIES
 
   // CREATE QUESTION STATES
   Map<String, List<String>> ageRangeGroup = {
-    "men": <String>[],
-    "women": <String>[]
+    'men': <String>[],
+    'women': <String>[]
   };
 
   Map<String, dynamic> currentQuestionData = {
-    "gender": "",
-    "question": "",
-    "ageRange": [20, 100],
-    "options": [],
-    "toAllAgeGroup": false
+    'gender': '',
+    'question': '',
+    'ageRange': [20, 100],
+    'options': [],
+    'toAllAgeGroup': false
   };
   List<Map<String, dynamic>> options = [];
   Map<String, dynamic> optionTextValue = {};
@@ -24,8 +23,8 @@ class AdminStateModel extends ChangeNotifier {
   //LIST QUESTION STATES
   List<Map<String, dynamic>> questionsData = [];
   bool isQuestionsEmpty = false;
-  String currentSelectedAgeGroup = "";
-  String currentSelectedGender = "";
+  String currentSelectedAgeGroup = '';
+  String currentSelectedGender = '';
 
 // methods
 
@@ -38,23 +37,23 @@ class AdminStateModel extends ChangeNotifier {
   }
 
   void onQuestionTitle(title) {
-    currentQuestionData["question"] = title;
+    currentQuestionData['question'] = title;
     notifyListeners();
   }
 
   void updateAgeRange(value, index) {
-    currentQuestionData["ageRange"][index] = value;
+    currentQuestionData['ageRange'][index] = value;
     notifyListeners();
   }
 
   void onGenderSelect(value) {
-    currentQuestionData["gender"] = value;
+    currentQuestionData['gender'] = value;
     notifyListeners();
   }
 
   void onAllAgeGroup(bool value) {
     print('value, $value');
-    currentQuestionData["toAllAgeGroup"] = value;
+    currentQuestionData['toAllAgeGroup'] = value;
     print('currentQuestionData, $currentQuestionData');
     notifyListeners();
   }
@@ -65,17 +64,17 @@ class AdminStateModel extends ChangeNotifier {
   }
 
   void createOption(optionText, optionRisk) {
-    options.add({"TEXT": optionText, "VALUE": optionRisk});
-    currentQuestionData["options"] = [...options];
+    options.add({'TEXT': optionText, 'VALUE': optionRisk});
+    currentQuestionData['options'] = [...options];
     notifyListeners();
   }
 
   void resetQuestionData() {
     currentQuestionData = {
-      "gender": "men",
-      "question": "",
-      "ageRange": [20, 100],
-      "options": []
+      'gender': 'men',
+      'question': '',
+      'ageRange': [20, 100],
+      'options': []
     };
     options = [];
     notifyListeners();
@@ -86,7 +85,7 @@ class AdminStateModel extends ChangeNotifier {
   void updateQuestionsList(List data) {
     questionsData = [...data];
 
-    if (data.length == 0) {
+    if (data.isEmpty) {
       isQuestionsEmpty = true;
     }
     notifyListeners();
@@ -94,15 +93,15 @@ class AdminStateModel extends ChangeNotifier {
 
   // delete a question
   Future deleteQuesiton(Map questionData, gender) async {
-    print('DELETE QUESTION DATA, $questionData');
+    // print('DELETE QUESTION DATA, $questionData');
     questionsData.remove(questionData);
 
-    if (questionsData.length == 0) {
+    if (questionsData.isEmpty) {
       isQuestionsEmpty = true;
     }
 
-    await dbService.deleteQuestion(questionData["id"], gender);
-    await this.selectQuestionByAge(this.currentSelectedAgeGroup, gender);
+    await dbService.deleteQuestion(questionData['id'], gender);
+    await selectQuestionByAge(currentSelectedAgeGroup, gender);
     notifyListeners();
   }
 
@@ -111,21 +110,23 @@ class AdminStateModel extends ChangeNotifier {
     currentSelectedAgeGroup = ageGroup;
     currentSelectedGender = gender;
 
-    List<Map> questionData = await dbService.getQuestions(gender);
+    final List<Map> questionData = await dbService.getQuestions(gender);
 
-    List filterdQuestionData = questionData.where((dynamic element) {
-      return (element["ageRange"] as List).join("-") == ageGroup ||
-          element["toAllAgeGroup"] == true;
+    final List filterdQuestionData = questionData.where((dynamic element) {
+      return (element['ageRange'] as List).join('-') == ageGroup ||
+          element['toAllAgeGroup'] == true;
     }).toList();
-    print('filterdQuestionData: $filterdQuestionData');
+
+    // sorting by question number
+    filterdQuestionData.sort((a, b) => (a["qNo"].compareTo(b["qNo"])));
 
     questionsData = [...filterdQuestionData];
 
-    if (questionsData.length != 0) {
+    if (questionsData.isNotEmpty) {
       isQuestionsEmpty = false;
     }
 
-    if (questionsData.length == 0) {
+    if (questionsData.isEmpty) {
       isQuestionsEmpty = true;
     }
     // questionsData.where((element) => false)
@@ -133,9 +134,9 @@ class AdminStateModel extends ChangeNotifier {
   }
 
   void resetSelectedData() {
-    this.currentSelectedAgeGroup = "";
-    this.currentSelectedGender = "";
-    this.questionsData = [];
+    currentSelectedAgeGroup = '';
+    currentSelectedGender = '';
+    questionsData = [];
   }
 
   // select  a question by id
@@ -145,4 +146,36 @@ class AdminStateModel extends ChangeNotifier {
   //   // questionsData.where((element) => false)
   //   notifyListeners();
   // }
+
+  // delete a question
+  Future orderQuestions(newIndex, oldIndex) async {
+    // finding the ids of question
+    var oldQId = this.questionsData[oldIndex]['qNo'];
+    var newQId = this.questionsData[newIndex]['qNo'];
+
+    // replacing the old new index ids
+    this.questionsData[newIndex]['qNo'] = oldQId;
+    this.questionsData[oldIndex]['qNo'] = newQId;
+
+    // sorting the questions id wise
+    this.questionsData.sort(
+          (a, b) => (a["qNo"].compareTo(
+            b["qNo"],
+          )),
+        );
+
+    List<Map<String, dynamic>> questionIdValue = [
+      {
+        "docId": questionsData[newIndex]["id"],
+        "replaceValue": newQId,
+      },
+      {
+        "docId": questionsData[oldIndex]["id"],
+        "replaceValue": oldQId,
+      }
+    ];
+    dbService.updateQuestionOrder(questionIdValue, this.currentSelectedGender);
+
+    notifyListeners();
+  }
 }
